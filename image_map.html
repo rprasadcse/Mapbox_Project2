@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Display a map</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.46.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.46.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>
+</head>
+<body>
+<style>
+    #menu {
+        position: absolute;
+        background: #fff;
+        padding: 10px;
+        font-family: 'Open Sans', sans-serif;
+    }
+.map-overlay {
+    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    position: absolute;
+    width: 200px;
+    top: 350px;
+    left: 0px;
+    padding: 1px;
+}
+
+.map-overlay .map-overlay-inner {
+    background-color: #fff;
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.10);
+    border-radius: 3px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.map-overlay-inner fieldset {
+    border: 2px;
+    padding: 0;
+    margin: 0 0 10px;
+}
+
+.map-overlay-inner fieldset:last-child {
+    margin: 0;
+}
+
+.map-overlay-inner select {
+    width: 100%;
+}
+
+.map-overlay-inner label {
+    display: block;
+    font-weight: bold;
+    margin: 0 0 5px;
+}
+
+.map-overlay-inner button {
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    border: 2px;
+    cursor: pointer;
+}
+
+.map-overlay-inner button:focus {
+    outline: none;
+}
+
+.map-overlay-inner button:hover {
+    box-shadow:inset 0 0 0 3px rgba(0, 0, 0, 0.10);
+}
+</style>
+<style type='text/css'>
+    #info {
+        display: block;
+        position: relative;
+        margin: 0px auto;
+        width: 50%;
+        padding: 10px;
+        border: none;
+        border-radius: 3px;
+        font-size: 12px;
+        text-align: center;
+        color: #222;
+        background: #fff;
+    }
+</style>
+
+<div id='map'></div>
+<pre id='info'></pre>
+<div id='menu'>
+    <input id='cj5t9v7114csh2rrvgjxwvuiz' type='checkbox' name='rtoggle' value='basic' checked='checked'>
+    <label for='basic'>basic</label>
+    <input id='cj2v8yy9s00182rpgzmxezrpc' type='checkbox' name='rtoggle' value='streets'>
+    <label for='streets'>streets</label>
+<!--
+    <input id='cj5t9v7114csh2rrvgjxwvuiz' type='radio' name='rtoggle' value='bright'>
+    <label for='bright'>bright</label>
+    <input id='cj2v8yy9s00182rpgzmxezrpc' type='radio' name='rtoggle' value='light'>
+    <label for='light'>light</label>
+    <input id='cj5t9v7114csh2rrvgjxwvuiz' type='radio' name='rtoggle' value='dark'>
+    <label for='dark'>dark</label>
+    <input id='cj2v8yy9s00182rpgzmxezrpc' type='radio' name='rtoggle' value='satellite'>
+    <label for='satellite'>satellite</label>
+-->
+</div>
+<div class='map-overlay top'>
+    <div class='map-overlay-inner'>
+        <fieldset>
+            <label>Select layer</label>
+            <select id='cj5t9v7114csh2rrvgjxwvuiz' name='layer'>
+                <option value='water'>Water</option>
+                <option value='building'>Buildings</option>
+            </select>
+        </fieldset>
+        <fieldset>
+            <label>Choose a color</label>
+            <div id='swatches'></div>
+        </fieldset>
+    </div>
+</div>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoicmtoYW5kZWx3YWwiLCJhIjoiY2oybHBiMXQ2MDAwdDMzbzB2cnVqYXg5ZyJ9.yt66W9K5UMMGZ2fE4LccLA';
+var map = new mapboxgl.Map({
+    container: 'map', // container id
+    style: 'mapbox://styles/rkhandelwal/cj5t9v7114csh2rrvgjxwvuiz', // stylesheet location
+    center: [-74.50, 40], // starting position [lng, lat]
+    zoom: 9 // starting zoom
+});
+var swatches = document.getElementById('swatches');
+var layer = document.getElementById('cj5t9v7114csh2rrvgjxwvuiz');
+var colors = [
+    '#ffffcc',
+    '#a1dab4',
+    '#41b6c4',
+    '#2c7fb8',
+    '#253494',
+    '#fed976',
+    '#feb24c',
+    '#fd8d3c',
+    '#f03b20',
+    '#bd0026'
+];
+
+var layerList = document.getElementById('menu');
+var inputs = layerList.getElementsByTagName('input');
+
+function switchLayer(layer) {
+    var layerId = layer.target.id;
+    map.setStyle('mapbox://styles/rkhandelwal/' + layerId);
+}
+
+for (var i = 0; i < inputs.length; i++) {
+    inputs[i].onclick = switchLayer;
+}
+colors.forEach(function(color) {
+    var swatch = document.createElement('button');
+    swatch.style.backgroundColor = color;
+    swatch.addEventListener('click', function() {
+        map.setPaintProperty(layer.value, 'fill-color', color);
+    });
+    swatches.appendChild(swatch);
+});
+map.on('mousemove', function (e) {
+    document.getElementById('info').innerHTML = 
+        // e.point is the x, y coordinates of the mousemove event relative
+        // to the top-left corner of the map
+        JSON.stringify(e.point) + '<br />' +
+        // e.lngLat is the longitude, latitude geographical position of the event
+        JSON.stringify(e.lngLat);
+});
+map.addControl(new mapboxgl.NavigationControl());
+map.addControl(new mapboxgl.GeolocateControl({
+    positionOptions: {
+        enableHighAccuracy: true
+    },
+    trackUserLocation: true
+}));
+
+    
+</script>
+
+</body>
+</html>
